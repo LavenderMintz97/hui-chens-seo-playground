@@ -14,5 +14,3 @@ A pastel static portfolio website for Hui Chen, featuring SEO Lab Checker tools,
 ## Deploy
 
 This is a static site. Deploy the repository root to Vercel with no build command and no output directory.
-
-![Founders Club Wellness HIIT](./founders-club-weekly-hiit.png)
