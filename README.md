@@ -1,15 +1,15 @@
-# Hui Chen's SEO Playground
+# Hui Chen Digital Playground
 
-A pastel static portfolio website for Hui Chen, featuring SEO Lab Checker tools, case study filters, service lanes, contact CTAs, and the Founders Club Weekly Wellness HIIT promotion.
+A slick static digital playground portfolio for Hui Chen, positioning search and SEO as one strong pillar inside a broader lab for AI workflows, web experiments, automation, content systems, analytics, and digital growth projects.
 
 ## Features
 
-- Hero portfolio landing section
-- SEO Lab Checker tools
-- Case Study Explorer
-- Career Timeline
-- Services for SEO & SEM, Tarot Reading, Chinese Metaphysics, and Founders Club Community
-- Contact CTAs for CV, WhatsApp, and email draft
+- Dark SaaS / AI dashboard-inspired homepage
+- Broader navigation for Playground, Projects, AI Lab, Search & SEO, Web Experiments, Content Engine, and Contact
+- Dashboard-style hero with experiment tags and growth-system signals
+- Featured project cards with lightweight filtering
+- Dedicated AI Lab, Search Systems, Web Experiments, Content Engine, Tool Stack, and Now Building sections
+- Contact CTAs for email, GitHub, and CV
 
 ## Deploy
 

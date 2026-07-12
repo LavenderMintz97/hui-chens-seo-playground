@@ -1,21 +1,269 @@
-var $=function(s,r){return (r||document).querySelector(s)};var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
-var cases=[{title:'Service website technical review',tags:['Technical SEO','GA4/GSC'],metric:'Technical review',note:'Checked indexation, canonical tags, redirects, internal links, and basic tracking setup.'},{title:'Founder content planning',tags:['Content SEO'],metric:'Content planning',note:'Grouped content ideas around founder questions, service pages, and supporting blog topics.'},{title:'Backlink profile review',tags:['Backlink Audit'],metric:'Link review',note:'Reviewed referring domains, anchor text, and simple next steps for link cleanup or outreach.'},{title:'GSC launch check',tags:['GA4/GSC','Technical SEO'],metric:'GSC review',note:'Compared pages and queries after launch to spot crawl, ranking, or tracking issues.'},{title:'iGaming content structure',tags:['iGaming SEO','Content SEO'],metric:'Content structure',note:'Organized review, comparison, glossary, and long-tail content ideas for clearer navigation.'},{title:'SEM landing page check',tags:['Content SEO','GA4/GSC'],metric:'Landing page check',note:'Reviewed whether paid-search intent matched the landing page message, FAQs, and tracking.'}];
-var lastSerpReport='';
-function esc(v){return String(v||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function hasPhrase(text,phrase){return String(text||'').toLowerCase().indexOf(String(phrase||'').toLowerCase())>=0}
-function scoreLabel(score){return score>=86?'Strong':score>=72?'Healthy':score>=55?'Needs tuning':'Needs attention'}
-function pill(text,type){return '<span class="insight '+(type||'neutral')+'">'+esc(text)+'</span>'}
-function reportList(items){return '<ul class="report-list">'+items.map(function(i){return '<li><b>'+esc(i.label)+'</b><span>'+esc(i.text)+'</span></li>'}).join('')+'</ul>'}
-function initTabs(){$$('.tab').forEach(function(tab){tab.onclick=function(){$$('.tab').forEach(function(t){t.classList.toggle('active',t===tab)});$$('.panel').forEach(function(p){p.classList.toggle('active',p.dataset.panel===tab.dataset.tool)})}})}
-function initSerp(){function rangeScore(len,min,bestMin,bestMax,max){if(len<min)return Math.max(0,Math.round(len/min*54));if(len<=bestMax&&len>=bestMin)return 100;if(len>max)return Math.max(25,100-(len-max)*4);return 82}function u(){var t=$('#metaTitle').value.trim(),url=$('#metaUrl').value.trim(),d=$('#metaDescription').value.trim(),k=$('#targetKeyword').value.trim(),intent=$('#serpIntent').value,goal=$('#pageGoal').value;var titleScore=rangeScore(t.length,28,42,60,68),descScore=rangeScore(d.length,80,120,155,170),keywordScore=k?(hasPhrase(t,k)?24:0)+(hasPhrase(d,k)?18:0)+(hasPhrase(url,k.replace(/\s+/g,'-'))?8:0):18;var clarityScore=(/[|:,-]/.test(t)?8:0)+(d.indexOf('.')>20?8:0)+(d.length>0&&!/(click here|welcome to|best best)/i.test(d)?8:0)+(url.indexOf(' ')<0?6:0);var score=Math.min(100,Math.round(titleScore*.28+descScore*.28+keywordScore+clarityScore));var risks=[],wins=[],next=[];if(t.length<32)risks.push('Title may be too short to carry keyword, offer, and market context.');else wins.push('Title has enough room for keyword and positioning.');if(t.length>62)risks.push('Title may truncate on mobile SERP previews.');if(d.length<115)risks.push('Description could explain the benefit and next action more clearly.');else wins.push('Description has enough depth for benefit-led copy.');if(d.length>160)risks.push('Description is likely to truncate; keep the value proposition earlier.');if(k&&!hasPhrase(t,k))next.push('Place the primary keyword or a close variant near the front of the title.');if(k&&!hasPhrase(d,k))next.push('Mention the keyword naturally in the description once.');if(!/(audit|consult|book|download|check|strategy|report|call)/i.test(d))next.push('Add a clear action such as audit, checklist, report, or consultation.');if(!next.length)next.push('Test one more version with a stronger proof point or market qualifier.');$('#serpTitle').textContent=t||'Your SEO title appears here';$('#serpUrl').textContent=url||'example.com/page';$('#serpDescription').textContent=d||'Your meta description appears here.';$('#titleMeter').textContent='Title: '+t.length+' chars / '+Math.round(titleScore)+' quality';$('#descMeter').textContent='Description: '+d.length+' chars / '+Math.round(descScore)+' quality';$('#serpScore').innerHTML='<div class="score-ring" style="--score:'+score+'"><span>'+score+'</span></div><div><h3>'+scoreLabel(score)+' SERP Readiness</h3><p>'+esc(intent)+' page for '+esc(goal)+'. This is a heuristic preview based on length, keyword placement, clarity, and CTA signal.</p></div>';$('#serpReport').innerHTML='<div class="report-head"><h3>Analysis report</h3>'+pill(scoreLabel(score),score>=72?'good':'warn')+'</div>'+reportList([{label:'Primary keyword',text:k||'Add a target keyword for sharper analysis.'},{label:'Main risk',text:risks[0]||'No major snippet issue found.'},{label:'Quick win',text:wins[0]||'Make the offer and audience more specific.'},{label:'Next action',text:next[0]}])+'<div class="insight-row">'+next.slice(0,3).map(function(x){return pill(x,'neutral')}).join('')+'</div>';lastSerpReport='SEO SERP Report\nScore: '+score+' / 100 - '+scoreLabel(score)+'\nKeyword: '+(k||'Not set')+'\nIntent: '+intent+'\nGoal: '+goal+'\nTitle length: '+t.length+'\nDescription length: '+d.length+'\nMain risk: '+(risks[0]||'No major snippet issue found.')+'\nNext action: '+next.join(' ')}['metaTitle','metaUrl','metaDescription','targetKeyword','serpIntent','pageGoal'].forEach(function(id){$('#'+id).addEventListener('input',u);$('#'+id).addEventListener('change',u)});$('#copySerpReport').onclick=function(){navigator.clipboard&&navigator.clipboard.writeText(lastSerpReport);$('#copySerpReport').textContent='Report copied';setTimeout(function(){$('#copySerpReport').textContent='Copy report'},1400)};u()}
-function classifyIntent(k){var low=k.toLowerCase(),signals={Informational:['how','what','why','guide','learn','checklist','ideas','tutorial','example'],Commercial:['best','top','compare','review','consultant','specialist','agency','service'],Transactional:['hire','buy','price','cost','package','book','near me','quotation'],Diagnostic:['drop','audit','fix','recover','error','issue','lost','decline']};var best='Exploratory',hits=0;Object.keys(signals).forEach(function(b){var c=signals[b].filter(function(w){return low.indexOf(w)>=0}).length;if(c>hits){hits=c;best=b}});var funnel={Informational:'TOFU education',Commercial:'MOFU comparison',Transactional:'BOFU lead capture',Diagnostic:'Problem-aware recovery',Exploratory:'Discovery / nurture'}[best];return {intent:best,confidence:hits?Math.min(95,58+hits*18):42,funnel:funnel}}
-function initIntent(){$('#sortIntent').onclick=function(){var lines=$('#keywordList').value.split('\n').map(function(x){return x.trim()}).filter(Boolean),market=$('#keywordMarket').value;var grouped={Informational:[],Commercial:[],Transactional:[],Diagnostic:[],Exploratory:[]},scores=[];lines.forEach(function(k){var r=classifyIntent(k);grouped[r.intent].push({keyword:k,confidence:r.confidence,funnel:r.funnel});scores.push(r.confidence)});var avg=scores.length?Math.round(scores.reduce(function(a,b){return a+b},0)/scores.length):0;$('#intentResults').innerHTML='<section class="lab-summary"><div><span class="metric">'+lines.length+' keywords</span><span class="metric">'+avg+'% avg confidence</span><span class="metric">'+esc(market)+'</span></div><p>Rule-based clustering by search language. Use it as a planning layer, then validate priority with GSC, keyword tools, or paid search data.</p></section>'+Object.keys(grouped).map(function(b){return '<section class="bucket"><h3>'+b+'</h3><p>'+esc(({Informational:'Answer questions and build topical trust.',Commercial:'Show comparisons, proof, and service fit.',Transactional:'Use a direct CTA and conversion path.',Diagnostic:'Lead with symptoms, checks, and recovery steps.',Exploratory:'Needs human review or broader context.'})[b])+'</p><ul>'+(grouped[b].length?grouped[b].map(function(r){return '<li>'+esc(r.keyword)+' <small>'+r.confidence+'% - '+esc(r.funnel)+'</small></li>'}):['<li>No keywords yet</li>']).join('')+'</ul></section>'}).join('')};$('#sortIntent').click()}
-function initFaq(){$('#buildFaq').onclick=function(){var topic=$('#faqTopic').value.trim()||'SEO audit',aud=$('#faqAudience').value.trim()||'founders',offer=$('#faqOffer').value.trim()||'a practical SEO action plan',cta=$('#faqCta').value;var qs=['What is included in a '+topic+'?','How can '+aud+' know whether they need a '+topic+'?','How long does it take to see results after a '+topic+'?','What should '+aud+' prepare before starting?','How does '+offer+' help after the analysis?'];var schema={'@context':'https://schema.org','@type':'FAQPage',mainEntity:qs.map(function(q,i){return {'@type':'Question',name:q,acceptedAnswer:{'@type':'Answer',text:(i===0?'A strong answer should cover scope, deliverables, timeline, and what decisions the audit supports. ':'Write a concise answer with one practical detail, one proof point, and the next best action. ')+cta}}})};$('#faqOutput').innerHTML='<div class="report-head"><h3>FAQ + AEO report</h3>'+pill(qs.length+' questions','good')+'</div><p><b>Entity focus:</b> '+esc(topic)+', '+esc(aud)+', '+esc(offer)+'</p><p><b>Best use:</b> Add these to the page after the main service proof section. Keep answers specific and avoid generic filler.</p><pre>'+esc(JSON.stringify(schema,null,2))+'</pre>'};$('#buildFaq').click()}
-function initAudit(){var core={'Technical SEO':[['High','Crawl priority pages and blocked paths'],['High','Check indexability, canonicals, redirects, and status codes'],['Medium','Review internal link depth and orphan pages'],['Medium','Test Core Web Vitals on money templates']],'Content SEO':[['High','Map search intent by funnel stage'],['High','Find cannibalization and missing supporting pages'],['Medium','Rewrite titles and H1s around buyer language'],['Medium','Add proof, FAQs, and conversion modules']],'GA4/GSC':[['High','Confirm key events and conversions'],['High','Compare clicks, impressions, CTR, and position by page'],['Medium','Segment branded versus non-branded queries'],['Medium','Tie landing pages to leads or revenue']],'Backlink Audit':[['High','Separate toxic-risk from low-value noise'],['Medium','Review anchor text mix and referring domains'],['Medium','Compare competitor link gaps'],['Low','Prioritize recover, remove, earn, and monitor actions']]};$('#buildAudit').onclick=function(){var type=$('#auditType').value,pri=$('#auditPriority').value,maturity=$('#auditMaturity').value,url=$('#auditUrl').value.trim()||'selected site';var items=core[pri].concat([['High','Add '+type.toLowerCase()+'-specific conversion checks'],['Medium','Turn findings into a 30-day action board']]);var risk=maturity==='New website'?62:maturity==='Growing traffic'?74:maturity==='Traffic dropped'?48:82;$('#auditOutput').innerHTML='<div class="report-head"><h3>'+esc(pri)+' audit report</h3>'+pill(scoreLabel(risk)+' baseline',risk>=70?'good':'warn')+'</div><p><b>Site:</b> '+esc(url)+'<br><b>Context:</b> '+esc(type)+' - '+esc(maturity)+'</p><div class="audit-table">'+items.map(function(i){return '<div><span class="severity '+i[0].toLowerCase()+'">'+i[0]+'</span><p>'+esc(i[1])+'</p></div>'}).join('')+'</div><p><b>Recommended order:</b> fix High items first, then convert Medium items into content or analytics tasks.</p>'};$('#buildAudit').click()}
-function initBrief(){$('#buildBrief').onclick=function(){var k=$('#briefKeyword').value.trim()||'SEO strategy',i=$('#briefIntent').value,aud=$('#briefAudience').value.trim()||'Malaysia founders',funnel=$('#briefFunnel').value;var title='How to approach '+k+' for '+aud;$('#briefOutput').innerHTML='<div class="report-head"><h3>'+esc(k)+'</h3>'+pill(funnel,'good')+'</div><p><b>Intent:</b> '+esc(i)+'<br><b>Audience:</b> '+esc(aud)+'</p>'+reportList([{label:'Recommended H1',text:title},{label:'Angle',text:'Make the topic practical for Malaysia and SEA decision-makers.'},{label:'Must answer',text:'What changed, why it matters, what to check first, and when to ask for help.'},{label:'Proof module',text:'Add a mini case example, checklist screenshot, or before/after metric.'},{label:'CTA',text:funnel==='Awareness'?'Invite readers to try the SEO Lab Checker.':'Offer a mini audit, discovery call, or downloadable checklist.'}])+'<h4>Suggested outline</h4><ol><li>Problem and search intent</li><li>Quick diagnostic checklist</li><li>Recommended tools and data sources</li><li>Common mistakes</li><li>Action plan for the next 30 days</li><li>FAQ and conversion CTA</li></ol>'};$('#buildBrief').click()}
-function initDrop(){$('#diagnoseDrop').onclick=function(){var p=$('#dropPattern').value,c=$('#dropChange').value.trim()||'recent site change',start=Number($('#dropBefore').value||0),end=Number($('#dropAfter').value||0),loss=start&&end?Math.round((start-end)/start*100):0;var m={'Sudden drop':[['High','Check manual actions, noindex changes, robots.txt, migration mistakes, and tracking breakage.'],['High','Compare the exact drop date with deployments and Google updates.']],'Slow decline':[['Medium','Check content freshness, competitor gains, internal link dilution, and SERP feature displacement.'],['Medium','Group pages by template and topic to find the weakening cluster.']],'Only branded queries down':[['Medium','Check brand demand, paid campaign changes, PR seasonality, and homepage title/snippet changes.'],['Low','Look at country and device splits before assuming ranking loss.']],'Only one template down':[['High','Check template rendering, canonical patterns, structured data, internal links, and thin duplicated modules.'],['Medium','Compare one affected URL against one stable sibling URL.']]};var severity=loss>=35?'High':loss>=15?'Medium':'Low';$('#dropOutput').innerHTML='<div class="report-head"><h3>'+esc(p)+' diagnostic</h3>'+pill((loss?loss+'% estimated loss':'Add data for impact'),loss>=25?'warn':'neutral')+'</div><p><b>Recent change:</b> '+esc(c)+'</p><p><b>Impact:</b> '+esc(severity)+' urgency based on before/after clicks.</p><div class="audit-table">'+m[p].map(function(x){return '<div><span class="severity '+x[0].toLowerCase()+'">'+x[0]+'</span><p>'+esc(x[1])+'</p></div>'}).join('')+'</div><h4>Next 48 hours</h4><ol><li>Confirm tracking and GSC property coverage.</li><li>Segment by page template, query type, country, and device.</li><li>Compare affected URLs with stable URLs.</li><li>Document fixes and annotate the date for follow-up.</li></ol>'};$('#diagnoseDrop').click()}
-function initQuiz(){var qs=[['When a metric moves, you first check...',['Tracking','Queries','Content','Competitors']],['Your favorite SEO artifact is...',['Crawl map','Content brief','Dashboard','Positioning doc']],['A founder asks for growth. You start with...',['Technical risk','Market language','Offer clarity','Analytics']]];$('#quizSteps').innerHTML=qs.map(function(q,i){return '<fieldset><legend>'+q[0]+'</legend>'+q[1].map(function(o,j){return '<label><input type="radio" name="quiz-'+i+'" value="'+j+'" '+(j===0?'checked':'')+'> '+o+'</label>'}).join('')+'</fieldset>'}).join('');$('#quizResult').onclick=function(){var total=qs.reduce(function(sum,q,i){var checked=$('input[name="quiz-'+i+'"]:checked');return sum+Number(checked?checked.value:0)},0);var res=['Technical Detective: you find the crawl clue everyone else missed.','Content Cartographer: you turn messy demand into a clean topic map.','Analytics Alchemist: you connect data, behavior, and decisions.','Founder Whisperer: you translate search demand into business direction.'];$('#quizAnswer').textContent=res[total%res.length]}}
-function simplifyCaseIntro(){var h=$('#cases .heading');if(h)h.innerHTML='<p class="eyebrow">Case Studies</p><h2>Selected SEO work</h2><p>A simple view of SEO projects, audits, and learning notes by focus area.</p>';if(!$('#caseSimpleStyle')){var s=document.createElement('style');s.id='caseSimpleStyle';s.textContent='#cases .heading{max-width:640px}#cases h2{font-size:clamp(2rem,3vw,3rem);line-height:1.05}#cases .heading p:not(.eyebrow){max-width:560px;font-size:1rem;line-height:1.6}.case{min-height:220px}.case .metric{background:#fff7df;color:#6b596f}.case h3{font-size:1.08rem}.case p{font-size:.95rem}';document.head.appendChild(s)}}
-function renderCases(f){var arr=f==='All'||!f?cases:cases.filter(function(c){return c.tags.indexOf(f)>=0});$('#caseGrid').innerHTML=arr.map(function(c){return '<article class="case"><span class="metric">'+esc(c.metric)+'</span><h3>'+esc(c.title)+'</h3><p>'+esc(c.note)+'</p><div class="tags">'+c.tags.map(function(t){return '<span class="tag">'+esc(t)+'</span>'}).join('')+'</div></article>'}).join('')}function initFilters(){simplifyCaseIntro();$$('.filter').forEach(function(b){b.onclick=function(){$$('.filter').forEach(function(x){x.classList.toggle('active',x===b)});renderCases(b.dataset.filter)}});renderCases('All')}
-function initContact(){$('#contactForm').onsubmit=function(e){e.preventDefault();var body='Name: '+$('#contactName').value+'\nEmail: '+$('#contactEmail').value+'\nInterested in: '+$('#contactInterest').value+'\n\n'+$('#contactMessage').value;location.href='mailto:vannesang97@gmail.com?subject=Hui%20Chen%20SEO%20Playground%20Enquiry&body='+encodeURIComponent(body)}}
-initTabs();initSerp();initIntent();initFaq();initAudit();initBrief();initDrop();initQuiz();initFilters();initContact();
+var $ = function (selector, root) {
+  return (root || document).querySelector(selector);
+};
+
+var $$ = function (selector, root) {
+  return Array.prototype.slice.call((root || document).querySelectorAll(selector));
+};
+
+var header = $(".site-header");
+var menuToggle = $(".menu-toggle");
+
+if (header && menuToggle) {
+  menuToggle.addEventListener("click", function () {
+    var isOpen = header.classList.toggle("nav-open");
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  $$(".site-nav a").forEach(function (link) {
+    link.addEventListener("click", function () {
+      header.classList.remove("nav-open");
+      menuToggle.setAttribute("aria-expanded", "false");
+    });
+  });
+}
+
+var filters = $$(".filter");
+var projects = $$(".project-card");
+
+filters.forEach(function (filter) {
+  filter.addEventListener("click", function () {
+    var category = filter.dataset.filter;
+
+    filters.forEach(function (item) {
+      item.classList.toggle("active", item === filter);
+    });
+
+    projects.forEach(function (project) {
+      var shouldShow = category === "all" || project.dataset.category === category;
+      project.classList.toggle("is-hidden", !shouldShow);
+    });
+  });
+});
+
+var labTabs = $$(".lab-tab");
+var labPanels = $$(".lab-panel");
+
+labTabs.forEach(function (tab) {
+  tab.addEventListener("click", function () {
+    labTabs.forEach(function (item) {
+      item.classList.toggle("active", item === tab);
+    });
+
+    labPanels.forEach(function (panel) {
+      panel.classList.toggle("active", panel.dataset.labPanel === tab.dataset.labTool);
+    });
+  });
+});
+
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, function (character) {
+    return {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[character];
+  });
+}
+
+function includesText(text, phrase) {
+  return String(text || "").toLowerCase().indexOf(String(phrase || "").toLowerCase()) >= 0;
+}
+
+function scoreMeta() {
+  var keyword = $("#labKeyword") ? $("#labKeyword").value.trim() : "";
+  var title = $("#labTitle") ? $("#labTitle").value.trim() : "";
+  var description = $("#labDescription") ? $("#labDescription").value.trim() : "";
+  var output = $("#serpLabOutput");
+  if (!output) return;
+
+  var titleLengthScore = title.length >= 38 && title.length <= 62 ? 30 : title.length >= 28 && title.length <= 70 ? 22 : 12;
+  var descriptionScore = description.length >= 115 && description.length <= 160 ? 30 : description.length >= 80 && description.length <= 175 ? 22 : 12;
+  var keywordScore = keyword ? (includesText(title, keyword) ? 18 : 6) + (includesText(description, keyword) ? 12 : 4) : 10;
+  var clarityScore = /search|seo|ai|growth|content|web|audit|system/i.test(title + " " + description) ? 10 : 4;
+  var score = Math.min(100, titleLengthScore + descriptionScore + keywordScore + clarityScore);
+  var label = score >= 85 ? "Strong SERP foundation" : score >= 70 ? "Healthy, with tuning room" : "Needs clearer search signal";
+  var actions = [];
+
+  if (title.length < 38) actions.push("Make the title more descriptive so it carries the page promise.");
+  if (title.length > 62) actions.push("Move the strongest phrase earlier because long titles may truncate.");
+  if (description.length < 115) actions.push("Add a sharper benefit, audience, and next action to the description.");
+  if (description.length > 160) actions.push("Trim the description so important copy is less likely to truncate.");
+  if (keyword && !includesText(title, keyword)) actions.push("Use the target keyword or a close variant in the title.");
+  if (!actions.length) actions.push("Test a second version with a stronger proof point or audience qualifier.");
+
+  output.innerHTML = '<div class="score-result"><div class="score-orb" style="--score:' + score + '">' + score + '</div><div><h3>' + label + '</h3><p>Title: ' + title.length + ' characters. Description: ' + description.length + ' characters.</p></div></div><h3>Recommended next moves</h3><ul>' + actions.map(function (action) {
+    return "<li>" + escapeHtml(action) + "</li>";
+  }).join("") + "</ul>";
+}
+
+function classifyKeyword(keyword) {
+  var value = keyword.toLowerCase();
+  var groups = {
+    Informational: ["how", "what", "why", "guide", "checklist", "ideas", "learn", "example"],
+    Commercial: ["best", "top", "compare", "tools", "consultant", "specialist", "agency"],
+    Transactional: ["hire", "buy", "price", "cost", "service", "near me", "package"],
+    Diagnostic: ["audit", "fix", "recover", "drop", "migration", "error", "issue"]
+  };
+  var winner = "Exploratory";
+  var hits = 0;
+
+  Object.keys(groups).forEach(function (group) {
+    var count = groups[group].filter(function (term) {
+      return value.indexOf(term) >= 0;
+    }).length;
+    if (count > hits) {
+      hits = count;
+      winner = group;
+    }
+  });
+
+  return {
+    intent: winner,
+    confidence: hits ? Math.min(95, 58 + hits * 18) : 42
+  };
+}
+
+function sortIntentLab() {
+  var input = $("#intentKeywords");
+  var output = $("#intentLabOutput");
+  if (!input || !output) return;
+
+  var buckets = {
+    Informational: [],
+    Commercial: [],
+    Transactional: [],
+    Diagnostic: [],
+    Exploratory: []
+  };
+
+  input.value.split("\n").map(function (line) {
+    return line.trim();
+  }).filter(Boolean).forEach(function (keyword) {
+    var result = classifyKeyword(keyword);
+    buckets[result.intent].push({ keyword: keyword, confidence: result.confidence });
+  });
+
+  output.innerHTML = Object.keys(buckets).map(function (bucket) {
+    var items = buckets[bucket].length ? buckets[bucket].map(function (item) {
+      return "<li>" + escapeHtml(item.keyword) + "<small>" + item.confidence + "% confidence</small></li>";
+    }).join("") : "<li>No keywords yet</li>";
+
+    return '<section class="intent-bucket"><h3>' + bucket + '</h3><ul>' + items + '</ul></section>';
+  }).join("");
+}
+
+function buildAuditLab() {
+  var rawUrl = $("#auditUrl") ? $("#auditUrl").value.trim() : "";
+  var pageType = $("#auditPageType") ? $("#auditPageType").value : "Page";
+  var goal = $("#auditGoal") ? $("#auditGoal").value : "Lead enquiry";
+  var concern = $("#auditConcern") ? $("#auditConcern").value : "Technical SEO";
+  var output = $("#auditLabOutput");
+  if (!output) return;
+
+  var parsedUrl = null;
+  try {
+    parsedUrl = rawUrl ? new URL(rawUrl.indexOf("://") >= 0 ? rawUrl : "https://" + rawUrl) : null;
+  } catch (error) {
+    parsedUrl = null;
+  }
+
+  var path = parsedUrl ? parsedUrl.pathname : "";
+  var slug = path.split("/").filter(Boolean).pop() || "";
+  var foundationChecks = [
+    {
+      label: "Valid URL",
+      passed: Boolean(parsedUrl),
+      detail: parsedUrl ? parsedUrl.href : "Enter a valid URL so the lab can review the page foundation."
+    },
+    {
+      label: "HTTPS protocol",
+      passed: Boolean(parsedUrl && parsedUrl.protocol === "https:"),
+      detail: parsedUrl && parsedUrl.protocol === "https:" ? "The URL uses HTTPS." : "Use HTTPS for trust, browser security, and modern SEO hygiene."
+    },
+    {
+      label: "Readable slug",
+      passed: Boolean(parsedUrl && (!slug || /^[a-z0-9-]+$/i.test(slug))),
+      detail: !parsedUrl ? "Waiting for a valid URL." : slug ? "Slug reviewed: /" + slug : "Homepage URL detected; no slug needed."
+    },
+    {
+      label: "No query clutter",
+      passed: Boolean(parsedUrl && !parsedUrl.search),
+      detail: parsedUrl && !parsedUrl.search ? "The URL is clean without tracking parameters." : "Remove unnecessary query parameters from canonical page URLs."
+    },
+    {
+      label: "Focused page path",
+      passed: Boolean(parsedUrl && path.length <= 80),
+      detail: parsedUrl && path.length <= 80 ? "Path length looks manageable." : "Keep paths concise and descriptive where possible."
+    }
+  ];
+
+  var concernActions = {
+    "Technical SEO": ["Check indexability, canonical tags, redirects, and internal links.", "Run Core Web Vitals tests on the main template."],
+    "Content clarity": ["Make the H1, intro, and CTA match one clear search intent.", "Add proof, examples, and FAQs near decision points."],
+    "AI visibility": ["Answer direct questions in concise blocks.", "Add entity clarity around who, what, tools, services, and outcomes."],
+    "Conversion flow": ["Reduce competing CTAs and make the next action obvious.", "Track the main conversion event in GA4 or GTM."]
+  };
+
+  var items = ["Confirm the page has one clear primary purpose for " + goal.toLowerCase() + ".", "Review title, meta description, H1, and first screen message alignment."].concat(concernActions[concern]);
+  var passedCount = foundationChecks.filter(function (check) {
+    return check.passed;
+  }).length;
+  var issueCount = foundationChecks.length - passedCount;
+
+  output.innerHTML = '<div class="audit-summary"><span class="audit-pass">' + passedCount + ' passed</span><span class="' + (issueCount ? 'audit-issue' : 'audit-pass') + '">' + issueCount + ' issues</span></div><h3>' + escapeHtml(pageType) + ' foundation scan</h3><p>Priority lens: ' + escapeHtml(concern) + ' for ' + escapeHtml(goal).toLowerCase() + '.</p><div class="foundation-list">' + foundationChecks.map(function (check) {
+    return '<div><span class="' + (check.passed ? 'audit-pass' : 'audit-issue') + '">' + (check.passed ? 'Passed' : 'Issue') + '</span><p><b>' + escapeHtml(check.label) + '</b><br>' + escapeHtml(check.detail) + '</p></div>';
+  }).join("") + "</div><h3>Recommended next actions</h3><ul>" + items.map(function (item) {
+    return "<li>" + escapeHtml(item) + "</li>";
+  }).join("") + "</ul>";
+}
+
+if ($("#runSerpCheck")) {
+  $("#runSerpCheck").addEventListener("click", scoreMeta);
+  ["labKeyword", "labTitle", "labDescription"].forEach(function (id) {
+    var field = $("#" + id);
+    if (field) field.addEventListener("input", scoreMeta);
+  });
+  scoreMeta();
+}
+
+if ($("#sortIntentLab")) {
+  $("#sortIntentLab").addEventListener("click", sortIntentLab);
+  sortIntentLab();
+}
+
+if ($("#buildAuditLab")) {
+  $("#buildAuditLab").addEventListener("click", buildAuditLab);
+  ["auditUrl", "auditPageType", "auditGoal", "auditConcern"].forEach(function (id) {
+    var field = $("#" + id);
+    if (field) field.addEventListener("input", buildAuditLab);
+    if (field) field.addEventListener("change", buildAuditLab);
+  });
+  buildAuditLab();
+}
+
+var navLinks = $$(".site-nav a");
+var sections = navLinks
+  .map(function (link) {
+    var id = link.getAttribute("href");
+    return id && id.indexOf("#") === 0 ? $(id) : null;
+  })
+  .filter(Boolean);
+
+if ("IntersectionObserver" in window && sections.length) {
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+
+      navLinks.forEach(function (link) {
+        link.classList.toggle("active", link.getAttribute("href") === "#" + entry.target.id);
+      });
+    });
+  }, { rootMargin: "-35% 0px -55% 0px", threshold: 0 });
+
+  sections.forEach(function (section) {
+    observer.observe(section);
+  });
+}
